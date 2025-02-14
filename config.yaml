@@ -1,0 +1,56 @@
+paths:
+  root: "./data"
+  train_data: "mnist_train.pt"
+  test_data: "mnist_test.pt"
+  train_data_blurred: "mnist_train_blurred.pt"
+  test_data_blurred: "mnist_test_blurred.pt"
+
+mlflow:
+  backend_store_uri: "sqlite:///mlflow.db"
+  artifact_location: "./mlruns"
+  experiment_name: "MNIST_Experiments"
+
+data_prep:
+  blur_sigma: 2.0
+  download: true
+
+model_configs:
+  default:
+    name: "default"
+    hidden_size: 128
+    batch_size: 64
+    learning_rate: 0.01
+    data_split_ratio: 0.8
+    max_epochs: 10
+    max_samples: null
+    
+  small_hidden:
+    name: "small_hidden"
+    hidden_size: 2
+    batch_size: 64
+    learning_rate: 0.01
+    data_split_ratio: 0.8
+    max_epochs: 10
+    max_samples: null
+    
+  small_dataset:
+    name: "small_dataset"
+    hidden_size: 128
+    batch_size: 64
+    learning_rate: 0.01
+    data_split_ratio: 0.8
+    max_epochs: 10
+    max_samples: 100
+    
+  blurred_dataset:
+    name: "blurred_dataset"
+    hidden_size: 128
+    batch_size: 64
+    learning_rate: 0.01
+    data_split_ratio: 0.8
+    max_epochs: 10
+    max_samples: null
+
+testing:
+  batch_size: 64
+  shuffle: false
