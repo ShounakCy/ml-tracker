@@ -17,7 +17,7 @@ from mlflow.types.schema import Schema, TensorSpec
 
 def load_dataset(data_path, max_samples=None):
     """Load dataset with optional sample limiting"""
-    tensors, labels = torch.load(os.path.join(data_path))
+    tensors, labels = torch.load(str(data_path))
     if max_samples:
         tensors = tensors[:max_samples]
         labels = labels[:max_samples]
@@ -26,8 +26,10 @@ def load_dataset(data_path, max_samples=None):
 
 def save_dataset(path, dataset):
     """Save dataset tensors"""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     images, labels = dataset.tensors
-    torch.save((images, labels), os.path.join(path))
+    torch.save((images, labels), str(path))
 
 
 def create_blurred_dataset(input_path, output_path, sigma=2):

@@ -62,24 +62,4 @@ model_configs:
 testing:
   batch_size: 64
   save_predictions: true
-
-# # Logging settings
-# logging:
-#   save_frequency: 1  # Save model every N epochs
-#   metrics_batch_size: 100  # Number of batches between metric logging
-#   console_output: true
-#   save_model_at_end: true
-  
-# # Resource settings
-# resources:
-#   gpu_enabled: true
-#   mixed_precision: false
-#   num_workers: 4
-#   pin_memory: true
-
-# # Visualization settings
-# visualization:
-#   plot_training_curves: true
-#   save_confusion_matrix: true
-#   save_sample_predictions: true
-#   samples_to_visualize: 1cd 
+  shuffle: false

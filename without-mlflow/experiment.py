@@ -14,17 +14,6 @@ import json
 import psycopg2
 from psycopg2.extras import Json
 
-class SimpleNN(nn.Module):
-    def __init__(self, hidden_size):
-        super(SimpleNN, self).__init__()
-        self.fc1 = nn.Linear(28 * 28, hidden_size)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, 10)
-        self.softmax = nn.LogSoftmax(dim=1)
-
-    def forward(self, x):
-        x = x.view(-1, 28 * 28)
-        return self.softmax(self.fc2(self.relu(self.fc1(x))))
 
 def load_dataset(data_path, max_samples=None):
     """Load dataset with optional sample limiting"""
@@ -34,12 +23,14 @@ def load_dataset(data_path, max_samples=None):
         labels = labels[:max_samples]
     return TensorDataset(tensors, labels)
 
+
 def save_dataset(path, dataset):
     """Save dataset tensors"""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     images, labels = dataset.tensors
     torch.save((images, labels), str(path))
+
 
 def create_blurred_dataset(input_path, output_path, sigma=2):
     """Create and save blurred version of dataset"""
@@ -54,6 +45,20 @@ def create_blurred_dataset(input_path, output_path, sigma=2):
     save_dataset(output_path, blurred_dataset)
     return blurred_dataset
 
+
+class SimpleNN(nn.Module):
+    def __init__(self, hidden_size):
+        super(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(28 * 28, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, 10)
+        self.softmax = nn.LogSoftmax(dim=1)
+
+    def forward(self, x):
+        x = x.view(-1, 28 * 28)
+        return self.softmax(self.fc2(self.relu(self.fc1(x))))
+
+
 class ExperimentRunner:
     def __init__(self, config_path="config.yaml"):
         with open(config_path, "r") as f:
@@ -61,19 +66,19 @@ class ExperimentRunner:
 
         # Connect to database
         self.conn = psycopg2.connect(
-            dbname=self.config['database']['name'],
-            user=self.config['database']['user'],
-            password=self.config['database']['password'],
-            host=self.config['database']['host']
+            dbname=self.config["database"]["name"],
+            user=self.config["database"]["user"],
+            password=self.config["database"]["password"],
+            host=self.config["database"]["host"],
         )
-        
+
         # Create root path
         self.root_path = Path(self.config["paths"]["root"])
         self.root_path.mkdir(exist_ok=True, parents=True)
-        
+
         # Validate and create necessary directories
         self.validate_directories()
-        
+
     def validate_directories(self):
         """Validate that necessary directories exist and create them if not."""
         paths_to_check = [
@@ -81,68 +86,10 @@ class ExperimentRunner:
             self.root_path / self.config["paths"]["test_data"],
             self.root_path / self.config["paths"]["train_data_blurred"],
             self.root_path / self.config["paths"]["test_data_blurred"],
-            self.root_path / "models"
+            self.root_path / "models",
         ]
         for path in paths_to_check:
             path.parent.mkdir(parents=True, exist_ok=True)
-
-    def log_experiment(self, name, config, description=None, tags=None):
-        """Log a new experiment to the database"""
-        cur = self.conn.cursor()
-        cur.execute("""
-            INSERT INTO experiments (name, config, description, tags)
-            VALUES (%s, %s, %s, %s)
-            RETURNING experiment_id
-        """, (name, Json(config), description, Json(tags) if tags else None))
-        experiment_id = cur.fetchone()[0]
-        self.conn.commit()
-        cur.close()
-        return experiment_id
-
-    def log_metrics(self, experiment_id, metrics, epoch=None):
-        """Log metrics to the database"""
-        cur = self.conn.cursor()
-        if epoch is not None:
-            # Training metrics
-            cur.execute("""
-                INSERT INTO training_metrics (experiment_id, epoch, metrics)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (experiment_id, epoch) 
-                DO UPDATE SET metrics = EXCLUDED.metrics
-            """, (experiment_id, epoch, Json(metrics)))
-        else:
-            # Evaluation metrics
-            cur.execute("""
-                INSERT INTO evaluation_metrics (experiment_id, metrics)
-                VALUES (%s, %s)
-            """, (experiment_id, Json(metrics)))
-        self.conn.commit()
-        cur.close()
-
-    def log_artifact(self, experiment_id, name, artifact_type, file_path, metadata=None):
-        """Log artifact information to the database"""
-        cur = self.conn.cursor()
-        cur.execute("""
-            INSERT INTO artifacts (experiment_id, name, type, file_path, metadata)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (experiment_id, name) 
-            DO UPDATE SET file_path = EXCLUDED.file_path, metadata = EXCLUDED.metadata
-        """, (experiment_id, name, artifact_type, str(file_path), Json(metadata) if metadata else None))
-        self.conn.commit()
-        cur.close()
-
-    def update_experiment_status(self, experiment_id, status, duration_seconds=None):
-        """Update experiment status and duration"""
-        cur = self.conn.cursor()
-        cur.execute("""
-            UPDATE experiments 
-            SET status = %s, 
-                duration_seconds = %s,
-                completed_at = CASE WHEN %s = 'completed' THEN CURRENT_TIMESTAMP ELSE completed_at END
-            WHERE experiment_id = %s
-        """, (status, duration_seconds, status, experiment_id))
-        self.conn.commit()
-        cur.close()
 
     def prepare_mnist_datasets(self):
         """Download and prepare MNIST datasets"""
@@ -232,6 +179,87 @@ class ExperimentRunner:
             },
         }
 
+    def log_experiment(self, name, config, description=None, tags=None):
+        """Log a new experiment to the database"""
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO experiments (name, config, description, tags)
+            VALUES (%s, %s, %s, %s)
+            RETURNING experiment_id
+        """,
+            (name, Json(config), description, Json(tags) if tags else None),
+        )
+        experiment_id = cur.fetchone()[0]
+        self.conn.commit()
+        cur.close()
+        return experiment_id
+
+    def log_metrics(self, experiment_id, metrics, epoch=None):
+        """Log metrics to the database"""
+        cur = self.conn.cursor()
+        if epoch is not None:
+            # Training metrics
+            cur.execute(
+                """
+                INSERT INTO training_metrics (experiment_id, epoch, metrics)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (experiment_id, epoch) 
+                DO UPDATE SET metrics = EXCLUDED.metrics
+            """,
+                (experiment_id, epoch, Json(metrics)),
+            )
+        else:
+            # Evaluation metrics
+            cur.execute(
+                """
+                INSERT INTO evaluation_metrics (experiment_id, metrics)
+                VALUES (%s, %s)
+            """,
+                (experiment_id, Json(metrics)),
+            )
+        self.conn.commit()
+        cur.close()
+
+    def log_artifact(
+        self, experiment_id, name, artifact_type, file_path, metadata=None
+    ):
+        """Log artifact information to the database"""
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO artifacts (experiment_id, name, type, file_path, metadata)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (experiment_id, name) 
+            DO UPDATE SET file_path = EXCLUDED.file_path, metadata = EXCLUDED.metadata
+        """,
+            (
+                experiment_id,
+                name,
+                artifact_type,
+                str(file_path),
+                Json(metadata) if metadata else None,
+            ),
+        )
+        self.conn.commit()
+        cur.close()
+
+    def update_experiment_status(self, experiment_id, status, duration_seconds=None):
+        """Update experiment status and duration"""
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+            UPDATE experiments 
+            SET status = %s, 
+                duration_seconds = %s,
+                completed_at = CASE WHEN %s = 'completed' THEN CURRENT_TIMESTAMP ELSE completed_at END
+            WHERE experiment_id = %s
+        """,
+            (status, duration_seconds, status, experiment_id),
+        )
+        self.conn.commit()
+        cur.close()
+
     def run_experiment(self, model_config_name):
         """Run complete experiment: data prep, training, and testing"""
         start_time = datetime.now()
@@ -244,7 +272,7 @@ class ExperimentRunner:
             name=run_name,
             config=model_config,
             description=f"MNIST experiment with {model_config_name} configuration",
-            tags={"model_type": "SimpleNN", "dataset": "MNIST"}
+            tags={"model_type": "SimpleNN", "dataset": "MNIST"},
         )
 
         try:
@@ -272,13 +300,17 @@ class ExperimentRunner:
                     "limited_dataset",
                     "dataset",
                     limited_train_path,
-                    self.get_dataset_metadata(train_dataset, limited_train_path)
+                    self.get_dataset_metadata(train_dataset, limited_train_path),
                 )
-            
+
             # Create blurred datasets
             print("Creating datasets...")
-            train_blurred_path = self.root_path / self.config["paths"]["train_data_blurred"]
-            test_blurred_path = self.root_path / self.config["paths"]["test_data_blurred"]
+            train_blurred_path = (
+                self.root_path / self.config["paths"]["train_data_blurred"]
+            )
+            test_blurred_path = (
+                self.root_path / self.config["paths"]["test_data_blurred"]
+            )
 
             if not (train_blurred_path.exists() and test_blurred_path.exists()):
                 create_blurred_dataset(
@@ -300,20 +332,22 @@ class ExperimentRunner:
                 (train_path, "original_train"),
                 (test_path, "original_test"),
                 (train_blurred_path, "blurred_train"),
-                (test_blurred_path, "blurred_test")
+                (test_blurred_path, "blurred_test"),
             ]:
                 self.log_artifact(
                     experiment_id,
                     name,
                     "dataset",
                     path,
-                    self.get_dataset_metadata(load_dataset(path), path)
+                    self.get_dataset_metadata(load_dataset(path), path),
                 )
 
             # Split training data
             train_size = int(model_config["data_split_ratio"] * len(train_dataset))
             val_size = len(train_dataset) - train_size
-            train_subset, val_subset = random_split(train_dataset, [train_size, val_size])
+            train_subset, val_subset = random_split(
+                train_dataset, [train_size, val_size]
+            )
 
             # Create data loaders
             train_loader = DataLoader(
@@ -323,7 +357,9 @@ class ExperimentRunner:
                 val_subset, batch_size=model_config["batch_size"], shuffle=False
             )
             test_loader = DataLoader(
-                test_dataset, batch_size=self.config["testing"]["batch_size"], shuffle=False
+                test_dataset,
+                batch_size=self.config["testing"]["batch_size"],
+                shuffle=False,
             )
             blurred_test_loader = DataLoader(
                 blurred_test_dataset,
@@ -338,7 +374,9 @@ class ExperimentRunner:
 
             # Training loop
             for epoch in range(model_config["max_epochs"]):
-                train_metrics = self.train_epoch(model, train_loader, criterion, optimizer)
+                train_metrics = self.train_epoch(
+                    model, train_loader, criterion, optimizer
+                )
                 val_metrics = self.evaluate(model, val_loader, criterion)
 
                 # Log training metrics
@@ -348,9 +386,9 @@ class ExperimentRunner:
                         "train_loss": train_metrics["loss"],
                         "train_accuracy": train_metrics["accuracy"],
                         "val_loss": val_metrics["loss"],
-                        "val_accuracy": val_metrics["accuracy"]
+                        "val_accuracy": val_metrics["accuracy"],
                     },
-                    epoch=epoch
+                    epoch=epoch,
                 )
 
                 print(
@@ -373,8 +411,8 @@ class ExperimentRunner:
                     "test_loss": test_metrics["loss"],
                     "test_accuracy": test_metrics["accuracy"],
                     "test_blurred_loss": blurred_test_metrics["loss"],
-                    "test_blurred_accuracy": blurred_test_metrics["accuracy"]
-                }
+                    "test_blurred_accuracy": blurred_test_metrics["accuracy"],
+                },
             )
 
             # Save model
@@ -386,7 +424,7 @@ class ExperimentRunner:
                 "model_checkpoint",
                 "model",
                 model_path,
-                {"hidden_size": model_config["hidden_size"]}
+                {"hidden_size": model_config["hidden_size"]},
             )
 
             # Update experiment status
@@ -408,6 +446,7 @@ class ExperimentRunner:
         if self.conn:
             self.conn.close()
 
+
 def main():
     runner = ExperimentRunner("config.yaml")
     try:
@@ -418,6 +457,7 @@ def main():
             runner.run_experiment(model_config_name)
     finally:
         runner.close()
+
 
 if __name__ == "__main__":
     main()

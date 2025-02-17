@@ -1,12 +1,12 @@
 # MNIST Experiment Tracker
 
-A machine learning experiment system for MNIST digit classification with MLflow tracking and Streamlit visualization.
+A machine learning experiment system for MNIST digit classification tracking and Streamlit visualization.
 
 ## Folder Structure
 
 ```bash
 ml-tracker/without-mlflow
-├── setup.py                # Streamlit dashboard application
+├── setup.py              # dB creation
 ├── app.py                # Streamlit dashboard application
 ├── experiment.py         # Script to run MNIST training experiments
 ├── config.yaml           # Configuration settings
@@ -51,9 +51,13 @@ Follow these steps in order:
 #### Step 1: Setup DB
 ```bash
 python setup.py
+```
 
+```bash
 psql <database_name> 
+```
 
+```bash
 experiment_tracking_new=# \dt
                     List of relations
  Schema |        Name        | Type  |       Owner        
@@ -86,6 +90,21 @@ experiment_tracking_new=# SELECT * FROM training_metrics ORDER BY created_at DES
         33 |             4 |     2 | {"val_loss": 0.3982979506254196, "train_loss": 0.4268189262946447, "val_accuracy": 0.8916666666666667, "train_accuracy": 0.8860416666666666}   | 2025-02-17 18:52:03.80757
         32 |             4 |     1 | {"val_loss": 0.4702480628490448, "train_loss": 0.5601456625064214, "val_accuracy": 0.8810833333333333, "train_accuracy": 0.8640833333333333}   | 2025-02-17 18:52:03.279578
         31 |             4 |     0 | {"val_loss": 0.717241516828537, "train_loss": 1.379305993159612, "val_accuracy": 0.8425833333333334, "train_accuracy": 0.709875}               | 2025-02-17 18:52:02.783493
+
+experiment_tracking_new=# SELECT * FROM artifacts ORDER BY created_at DESC limit 10;
+ artifact_id | experiment_id |       name       |  type   |                  file_path                   |                                                                                                                 metadata                                                                                                                 |         created_at         
+-------------+---------------+------------------+---------+----------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------
+          21 |             4 | model_checkpoint | model   | data/models/blurred_dataset_320679ee.pth     | {"hidden_size": 128}                                                                                                                                                                                                                     | 2025-02-17 18:52:07.44743
+          20 |             4 | blurred_test     | dataset | data/datasets/blurred/mnist_test_blurred.pt  | {"size": 10000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 29.98451519012451, "class_distribution": {"0": 980, "1": 1135, "2": 1032, "3": 1010, "4": 982, "5": 892, "6": 958, "7": 1028, "8": 974, "9": 1009}}       | 2025-02-17 18:52:02.279929
+          19 |             4 | blurred_train    | dataset | data/datasets/blurred/mnist_train_blurred.pt | {"size": 60000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 179.90212154388428, "class_distribution": {"0": 5923, "1": 6742, "2": 5958, "3": 6131, "4": 5842, "5": 5421, "6": 5918, "7": 6265, "8": 5851, "9": 5949}} | 2025-02-17 18:52:02.273886
+          18 |             4 | original_test    | dataset | data/datasets/original/mnist_test.pt         | {"size": 10000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 29.984484672546387, "class_distribution": {"0": 980, "1": 1135, "2": 1032, "3": 1010, "4": 982, "5": 892, "6": 958, "7": 1028, "8": 974, "9": 1009}}      | 2025-02-17 18:52:02.245499
+          17 |             4 | original_train   | dataset | data/datasets/original/mnist_train.pt        | {"size": 60000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 179.90209102630615, "class_distribution": {"0": 5923, "1": 6742, "2": 5958, "3": 6131, "4": 5842, "5": 5421, "6": 5918, "7": 6265, "8": 5851, "9": 5949}} | 2025-02-17 18:52:02.238978
+          16 |             3 | model_checkpoint | model   | data/models/small_dataset_232e8342.pth       | {"hidden_size": 128}                                                                                                                                                                                                                     | 2025-02-17 18:52:02.169833
+          15 |             3 | blurred_test     | dataset | data/datasets/blurred/mnist_test_blurred.pt  | {"size": 10000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 29.98451519012451, "class_distribution": {"0": 980, "1": 1135, "2": 1032, "3": 1010, "4": 982, "5": 892, "6": 958, "7": 1028, "8": 974, "9": 1009}}       | 2025-02-17 18:52:02.043301
+          14 |             3 | blurred_train    | dataset | data/datasets/blurred/mnist_train_blurred.pt | {"size": 60000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 179.90212154388428, "class_distribution": {"0": 5923, "1": 6742, "2": 5958, "3": 6131, "4": 5842, "5": 5421, "6": 5918, "7": 6265, "8": 5851, "9": 5949}} | 2025-02-17 18:52:02.03725
+          13 |             3 | original_test    | dataset | data/datasets/original/mnist_test.pt         | {"size": 10000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 29.984484672546387, "class_distribution": {"0": 980, "1": 1135, "2": 1032, "3": 1010, "4": 982, "5": 892, "6": 958, "7": 1028, "8": 974, "9": 1009}}      | 2025-02-17 18:52:02.007535
+          12 |             3 | original_train   | dataset | data/datasets/original/mnist_train.pt        | {"size": 60000, "image_shape": [1, 28, 28], "num_classes": 10, "file_size_mb": 179.90209102630615, "class_distribution": {"0": 5923, "1": 6742, "2": 5958, "3": 6131, "4": 5842, "5": 5421, "6": 5918, "7": 6265, "8": 5851, "9": 5949}} | 2025-02-17 18:52:02.001418
+
 ```
 
 

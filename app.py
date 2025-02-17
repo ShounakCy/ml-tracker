@@ -24,23 +24,13 @@ def get_dataset_info(file_path):
             tensors, labels = data
             shape = tuple(tensors.size())
             size_mb = os.path.getsize(file_path) / (1024 * 1024)
-            return {
-                "shape": shape,
-                "size_mb": size_mb,
-                "num_samples": len(labels)
-            }
+            return {"shape": shape, "size_mb": size_mb, "num_samples": len(labels)}
         else:
             shape = tuple(data.size())
             size_mb = os.path.getsize(file_path) / (1024 * 1024)
-            return {
-                "shape": shape,
-                "size_mb": size_mb,
-                "num_samples": shape[0]
-            }
+            return {"shape": shape, "size_mb": size_mb, "num_samples": shape[0]}
     except Exception as e:
-        return {
-            "error": str(e)
-        }
+        return {"error": str(e)}
 
 
 def load_experiment_data():
@@ -322,7 +312,7 @@ def display_dataset_metadata(runs):
                 f"Image Shape: {' × '.join(map(str, metadata['original']['image_shape']))}"
             )
             st.write(f"Number of Classes: {metadata['original']['num_classes']}")
-            if 'file_size_mb' in metadata['original']:
+            if "file_size_mb" in metadata["original"]:
                 st.write(f"File Size: {metadata['original']['file_size_mb']:.2f} MB")
 
             st.write("Class Distribution:")
@@ -342,7 +332,7 @@ def display_dataset_metadata(runs):
             )
             st.write(f"Number of Classes: {metadata['original']['num_classes']}")
             st.write(f"Blur Sigma: {metadata['blurred']['blur_sigma']}")
-            if 'file_size_mb' in metadata['blurred']:
+            if "file_size_mb" in metadata["blurred"]:
                 st.write(f"File Size: {metadata['blurred']['file_size_mb']:.2f} MB")
 
             st.write("Class Distribution:")
@@ -362,7 +352,7 @@ def display_dataset_metadata(runs):
                     f"Image Shape: {' × '.join(map(str, metadata['limited']['image_shape']))}"
                 )
                 st.write(f"Number of Classes: {metadata['limited']['num_classes']}")
-                if 'file_size_mb' in metadata['limited']:
+                if "file_size_mb" in metadata["limited"]:
                     st.write(f"File Size: {metadata['limited']['file_size_mb']:.2f} MB")
 
                 st.write("Class Distribution:")
@@ -430,7 +420,10 @@ def display_artifact_downloads(runs):
                     dataset_files = [
                         ("datasets/original/mnist_train.pt", "training_data"),
                         ("datasets/original/mnist_test.pt", "test_data"),
-                        ("datasets/blurred/mnist_train_blurred.pt", "blurred_training_data"),
+                        (
+                            "datasets/blurred/mnist_train_blurred.pt",
+                            "blurred_training_data",
+                        ),
                         ("datasets/blurred/mnist_test_blurred.pt", "blurred_test_data"),
                         ("datasets/limited/mnist_train.pt", "limited_training_data"),
                     ]
@@ -438,7 +431,10 @@ def display_artifact_downloads(runs):
                     dataset_files = [
                         ("datasets/original/mnist_train.pt", "training_data"),
                         ("datasets/original/mnist_test.pt", "test_data"),
-                        ("datasets/blurred/mnist_train_blurred.pt", "blurred_training_data"),
+                        (
+                            "datasets/blurred/mnist_train_blurred.pt",
+                            "blurred_training_data",
+                        ),
                         ("datasets/blurred/mnist_test_blurred.pt", "blurred_test_data"),
                     ]
 
@@ -471,7 +467,9 @@ def display_artifact_downloads(runs):
                                 st.write(f"💾 Size: {dataset_info['size_mb']:.2f} MB")
 
                     except Exception as e:
-                        st.warning(f"Could not load {name} for run {run_name}: {str(e)}")
+                        st.warning(
+                            f"Could not load {name} for run {run_name}: {str(e)}"
+                        )
 
         except Exception as e:
             st.warning(f"Could not load artifacts for run {run_name}: {str(e)}")

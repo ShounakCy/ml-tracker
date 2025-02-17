@@ -2,6 +2,8 @@
 
 A machine learning experiment system for MNIST digit classification with MLflow tracking and Streamlit visualization.
 
+
+
 ## Folder Structure
 
 ```bash
@@ -191,6 +193,13 @@ Common issues and solutions:
 2. **Database errors**
    - Delete `mlflow.db` and `mlruns` folder to start fresh
    - Restart the MLflow server
+
+## Implementation without MLFlow
+
+```bash
+ml-tracker/without-mlflow/
+```
+
 
 ## Future Work
 
