@@ -1,0 +1,9 @@
+torch
+torchvision
+mlflow
+PyYAML
+scikit-image
+numpy
+streamlit
+plotly
+psycopg2
