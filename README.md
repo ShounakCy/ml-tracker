@@ -38,8 +38,8 @@ cd ml-traker
 ### 0. Create virtual env
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv mlenv
+source mlenv/bin/activate
 ```
  or 
  
